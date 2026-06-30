@@ -12,7 +12,7 @@
     "statistic": 19.0,
     "p_value": 0.008187340968061554
   },
-  "champion": "Regressao Logistica",
+  "champion": "Regressão Logística",
   "holdout_metrics": {
     "PR-AUC": 0.3571389775704674,
     "ROC-AUC": 0.4787775891341256,

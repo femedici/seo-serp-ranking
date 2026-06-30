@@ -97,10 +97,10 @@ def get_models() -> dict:
     )
 
     return {
-        "Dummy (majoritaria)": build_pipeline(
+        "Dummy (majoritária)": build_pipeline(
             DummyClassifier(strategy="most_frequent"), needs_scaling=False
         ),
-        "Regressao Logistica": build_pipeline(_logreg(), needs_scaling=True),
+        "Regressão Logística": build_pipeline(_logreg(), needs_scaling=True),
         "k-NN": build_pipeline(_knn(), needs_scaling=True),
         "SVM-RBF": build_pipeline(_svm(), needs_scaling=True),
         "Random Forest": build_pipeline(_rf(), needs_scaling=False),
@@ -116,7 +116,7 @@ def get_search_spaces() -> dict:
     principais. Chaves usam o prefixo 'model__' do passo do Pipeline.
     """
     return {
-        "Regressao Logistica": {
+        "Regressão Logística": {
             "estimator": build_pipeline(_logreg(), needs_scaling=True),
             "params": {
                 "model__C": loguniform(1e-3, 1e3),

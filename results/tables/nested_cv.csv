@@ -1,4 +1,4 @@
 Modelo,PR-AUC (aninhada),PR-AUC dp,F1-macro (aninhada),F1-macro dp
-Regressao Logistica,0.3909,0.0217,0.4622,0.0303
+Regressão Logística,0.3909,0.0217,0.4622,0.0303
 Random Forest,0.3863,0.0405,0.4941,0.0518
 XGBoost,0.3702,0.0307,0.4544,0.0433

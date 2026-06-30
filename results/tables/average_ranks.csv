@@ -1,9 +1,9 @@
 ,rank_medio
-Regressao Logistica,2.7333333333333334
+Regressão Logística,2.7333333333333334
 k-NN,3.8666666666666667
 Random Forest,4.0
 SVM-RBF,4.333333333333333
 Soft Voting,4.333333333333333
 XGBoost,5.266666666666667
-Dummy (majoritaria),5.466666666666667
+Dummy (majoritária),5.466666666666667
 Stacking,6.0

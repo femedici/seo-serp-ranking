@@ -1,4 +1,4 @@
-Modelo campeao: Regressao Logistica
+Modelo selecionado: Regressão Logística
 
               precision    recall  f1-score   support
 

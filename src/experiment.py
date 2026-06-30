@@ -88,8 +88,8 @@ def plot_model_boxplot(per_fold_prauc: dict, path: str) -> None:
     data = [per_fold_prauc[k] for k in order]
     fig, ax = plt.subplots(figsize=(9, 5))
     ax.boxplot(data, vert=False, labels=order, showmeans=True)
-    ax.set_xlabel("PR-AUC por fold (CV repetida 5x3)")
-    ax.set_title("Comparacao de modelos - PR-AUC")
+    ax.set_xlabel("PR-AUC por fold (validação cruzada 5 x 3)")
+    ax.set_title("Comparação de modelos: PR-AUC")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
@@ -121,10 +121,10 @@ def plot_curves(y_true, proba, title: str, path: str) -> None:
     axes[0].legend(loc="lower right")
     axes[1].plot(rec, prec, color="#DD8452", label=f"PR-AUC = {pr_auc:.3f}")
     axes[1].axhline(y_true.mean(), ls="--", color="gray",
-                    label=f"Base = {y_true.mean():.3f}")
-    axes[1].set_xlabel("Recall")
-    axes[1].set_ylabel("Precision")
-    axes[1].set_title("Curva Precision-Recall")
+                    label=f"Linha de base = {y_true.mean():.3f}")
+    axes[1].set_xlabel("Revocação")
+    axes[1].set_ylabel("Precisão")
+    axes[1].set_title("Curva Precisão-Revocação")
     axes[1].legend(loc="upper right")
     fig.suptitle(title)
     fig.tight_layout()
@@ -136,19 +136,26 @@ def plot_importance(imp_df: pd.DataFrame, path: str) -> None:
     fig, ax = plt.subplots(figsize=(7, 5))
     d = imp_df.sort_values("importance")
     ax.barh(d["feature"], d["importance"], xerr=d["std"], color="#4C72B0")
-    ax.set_xlabel("Importancia por permutacao (queda media de PR-AUC)")
-    ax.set_title("Importancia dos atributos - modelo campeao")
+    ax.set_xlabel("Importância por permutação (queda média de PR-AUC)")
+    ax.set_title("Importância dos atributos: modelo selecionado")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
 
 
 def plot_group_importance(group_df: pd.DataFrame, path: str) -> None:
+    rotulos = {
+        "behavioral": "Comportamental",
+        "authority": "Autoridade",
+        "contextual": "Contextual",
+        "on_page": "On-page",
+    }
+    nomes = [rotulos.get(g, g) for g in group_df["grupo"]]
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar(group_df["grupo"], group_df["importancia_total"],
+    ax.bar(nomes, group_df["importancia_total"],
            color=["#4C72B0", "#DD8452", "#55A868", "#C44E52"][: len(group_df)])
-    ax.set_ylabel("Importancia total (permutacao)")
-    ax.set_title("Importancia por grupo de fatores de SEO")
+    ax.set_ylabel("Importância total (informação mútua)")
+    ax.set_title("Importância por grupo de fatores de SEO")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
@@ -159,7 +166,7 @@ def plot_cd_diagram(ranks, nemenyi, path: str) -> None:
         import scikit_posthocs as sp
         fig, ax = plt.subplots(figsize=(9, 3))
         sp.critical_difference_diagram(ranks, nemenyi, ax=ax)
-        ax.set_title("Diagrama de diferenca critica (Nemenyi)")
+        ax.set_title("Diagrama de diferença crítica (Nemenyi)")
         fig.tight_layout()
         fig.savefig(path, dpi=150)
         plt.close(fig)
@@ -223,27 +230,29 @@ def main() -> None:
     _save_table(nested, "nested_cv.csv")
     print(nested.to_string())
 
-    print("== 6. Modelo campeao e holdout de confirmacao ==")
+    print("== 6. Modelo selecionado e holdout de confirmacao ==")
     champ = champion_name(model_summary)
     results_json["champion"] = champ
-    print(f"  Campeao (maior PR-AUC medio): {champ}")
+    print(f"  Modelo selecionado (maior PR-AUC medio): {champ}")
     champ_model = clone(models[champ])
     metrics, cm, report, (y_true, proba) = holdout_evaluation(champ_model, X, y)
     results_json["holdout_metrics"] = {k: float(v) for k, v in metrics.items()}
     _save_table(pd.DataFrame([metrics], index=[champ]), "holdout_metrics.csv")
-    plot_confusion(cm, f"Matriz de confusao - {champ}", _fig_path("confusion_matrix.png"))
-    plot_curves(y_true, proba, f"Curvas - {champ}", _fig_path("roc_pr_curves.png"))
+    plot_confusion(cm, f"Matriz de confusão: {champ}", _fig_path("confusion_matrix.png"))
+    plot_curves(y_true, proba, f"Curvas: {champ}", _fig_path("roc_pr_curves.png"))
     with open(os.path.join(config.TABLES_DIR, "classification_report.txt"), "w", encoding="utf-8") as f:
-        f.write(f"Modelo campeao: {champ}\n\n{report}\n")
+        f.write(f"Modelo selecionado: {champ}\n\n{report}\n")
     print("  [figuras] confusion_matrix.png / roc_pr_curves.png")
     print(report)
 
     print("== 7. Interpretabilidade e ablacao ==")
     imp = interp.permutation_importances(clone(models[champ]), X, y)
     _save_table(imp.round(5), "permutation_importance.csv", index=False)
-    grp = interp.group_importance(imp)
-    _save_table(grp.round(5), "group_importance.csv", index=False)
     plot_importance(imp, _fig_path("feature_importance.png"))
+    # Importância por grupo baseada em informação mútua (consistente com a tabela de grupos)
+    mi_for_group = mi_tbl.rename(columns={"mutual_info": "importance"})
+    grp = interp.group_importance(mi_for_group)
+    _save_table(grp.round(5), "group_importance.csv", index=False)
     plot_group_importance(grp, _fig_path("group_importance.png"))
     print("  [figuras] feature_importance.png / group_importance.png")
     print(imp.round(4).to_string())

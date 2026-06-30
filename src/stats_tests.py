@@ -50,25 +50,48 @@ def average_ranks(friedman_result: dict) -> pd.Series:
     return pd.Series(ranks.mean(axis=0), index=names).sort_values()
 
 
+def _holm_adjust(pvalues: list[float]) -> list[float]:
+    """Correção de Holm-Bonferroni para múltiplas comparações."""
+    m = len(pvalues)
+    order = np.argsort(pvalues)
+    adj = np.empty(m, dtype=float)
+    running_max = 0.0
+    for rank, idx in enumerate(order):
+        val = (m - rank) * pvalues[idx]
+        running_max = max(running_max, val)
+        adj[idx] = min(running_max, 1.0)
+    return adj.tolist()
+
+
 def wilcoxon_vs_baseline(per_fold_prauc: dict, baseline_key: str) -> pd.DataFrame:
-    """Wilcoxon signed-rank de cada modelo contra o baseline, pareado por fold."""
+    """
+    Wilcoxon signed-rank de cada modelo contra o baseline, pareado por fold,
+    com correção de Holm-Bonferroni para o conjunto de comparações.
+    """
     base = per_fold_prauc[baseline_key]
-    rows = []
+    names, means, deltas, pvals = [], [], [], []
     for name, scores in per_fold_prauc.items():
         if name == baseline_key:
             continue
         diff = np.array(scores) - np.array(base)
         if np.allclose(diff, 0):
-            stat, p = np.nan, 1.0
+            p = 1.0
         else:
-            stat, p = wilcoxon(scores, base)
-        rows.append(
-            {
-                "Modelo": name,
-                "PR-AUC media": float(np.mean(scores)),
-                "Delta vs baseline": float(np.mean(diff)),
-                "Wilcoxon p": float(p),
-                "Significativo (a=0.05)": bool(p < config.ALPHA),
-            }
-        )
-    return pd.DataFrame(rows).set_index("Modelo")
+            _, p = wilcoxon(scores, base)
+        names.append(name)
+        means.append(float(np.mean(scores)))
+        deltas.append(float(np.mean(diff)))
+        pvals.append(float(p))
+
+    holm = _holm_adjust(pvals)
+    df = pd.DataFrame(
+        {
+            "Modelo": names,
+            "PR-AUC media": means,
+            "Delta vs baseline": deltas,
+            "Wilcoxon p": pvals,
+            "Holm p": holm,
+            "Significativo Holm (a=0.05)": [bool(h < config.ALPHA) for h in holm],
+        }
+    ).set_index("Modelo")
+    return df.sort_values("Wilcoxon p")
