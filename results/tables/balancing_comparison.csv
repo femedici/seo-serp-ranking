@@ -1,0 +1,5 @@
+Estrategia,PR-AUC,Recall (1),F1 (1),F1-macro
+LogReg + class_weight,0.4131,0.4696,0.4201,0.5001
+LogReg + SMOTE,0.3978,0.4574,0.4118,0.4955
+RF + class_weight,0.3907,0.0976,0.1513,0.4437
+RF + SMOTE,0.3678,0.2929,0.3152,0.4751

@@ -1,0 +1,8 @@
+Modelo,PR-AUC media,Delta vs baseline,Wilcoxon p,Significativo (a=0.05)
+Regressao Logistica,0.4131,0.0371,0.0026,True
+k-NN,0.3959,0.0199,0.1876,False
+SVM-RBF,0.396,0.02,0.0637,False
+Random Forest,0.3907,0.0147,0.0554,False
+XGBoost,0.3833,0.0073,0.6387,False
+Soft Voting,0.3906,0.0146,0.1205,False
+Stacking,0.3716,-0.0044,0.5995,False

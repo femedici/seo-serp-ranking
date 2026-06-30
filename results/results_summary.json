@@ -1,0 +1,26 @@
+{
+  "dataset": {
+    "n_rows": 500,
+    "n_cols": 14,
+    "n_features": 13,
+    "missing_total": 0,
+    "class_0": 312,
+    "class_1": 188,
+    "positive_rate": 0.376
+  },
+  "friedman": {
+    "statistic": 19.0,
+    "p_value": 0.008187340968061554
+  },
+  "champion": "Regressao Logistica",
+  "holdout_metrics": {
+    "PR-AUC": 0.3571389775704674,
+    "ROC-AUC": 0.4787775891341256,
+    "F1-macro": 0.5039983804028747,
+    "Balanced Acc.": 0.513157894736842,
+    "Precision (1)": 0.39215686274509803,
+    "Recall (1)": 0.5263157894736842,
+    "F1 (1)": 0.449438202247191,
+    "Acuracia": 0.51
+  }
+}
